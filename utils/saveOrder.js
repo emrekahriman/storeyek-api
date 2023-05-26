@@ -50,8 +50,9 @@ export const saveOrder = async (customer, data) => {
 
     // use updateMany instead of for loop
     const filter = { _id: { $in: customerItems.map((item) => item._id) } };
-    const update = { $inc: { countsInStock: -1 } };
-
+    const update = {
+      $inc: { countsInStock: -customerItems.map((item) => item.quantity) },
+    };
     const updatedProducts = await Product.updateMany(filter, update);
     console.log("updatedProducts :>> ", updatedProducts);
 
