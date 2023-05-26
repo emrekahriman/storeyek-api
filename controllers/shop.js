@@ -8,8 +8,6 @@ import { saveOrder } from "../utils/saveOrder.js";
 // Stripe secret key
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-
-
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.find({});
@@ -22,9 +20,12 @@ export const getCategories = async (req, res) => {
 export const getProducts = async (req, res) => {
   try {
     const products = await Product.find(
-      {},
-      "name slug category price images"
+      {
+        countsInStock: { $gt: 0 },
+      },
+      "name slug category price images countsInStock"
     ).sort({ createdAt: -1 });
+
     return res.send({ status: "success", products });
   } catch (error) {
     return res.send({ status: "error", error: error.message });
@@ -34,10 +35,10 @@ export const getProducts = async (req, res) => {
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const product = await Product.findOne({ slug }).populate(
-      "category comments.user",
-      "fullName profilePic"
-    );
+    const product = await Product.findOne({
+      slug,
+      countsInStock: { $gt: 0 },
+    }).populate("category comments.user", "fullName profilePic");
     return res.send({ status: "success", product });
   } catch (error) {
     return res.send({ status: "error", error: error.message });
@@ -53,8 +54,8 @@ export const getProductsByCategory = async (req, res) => {
       return res.send({ status: "error", error: "Category not found" });
 
     const products = await Product.find(
-      { category: category._id },
-      "name slug category price images"
+      { category: category._id, countsInStock: { $gt: 0 } },
+      "name slug category price images countsInStock"
     ).sort({ createdAt: -1 });
 
     return res.send({ status: "success", products });
@@ -72,8 +73,9 @@ export const getProductsBySearch = async (req, res) => {
           { name: { $regex: search, $options: "i" } },
           { description: { $regex: search, $options: "i" } },
         ],
+        countsInStock: { $gt: 0 },
       },
-      "name slug category price images"
+      "name slug category price images countsInStock"
     ).sort({ createdAt: -1 });
 
     return res.send({ status: "success", products });
@@ -86,7 +88,7 @@ export const getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate(
       "cart.items.product",
-      "name slug category images price"
+      "name slug category images price countsInStock"
     );
     if (!user) return res.send({ status: "error", error: "User not found" });
 
@@ -283,7 +285,6 @@ export const createOrderStripe = async (req, res) => {
     return res.send({ status: "error", error: error.message });
   }
 };
-
 
 // http://localhost:5000/orders/webhook
 export const stripeWebhook = async (req, res) => {
