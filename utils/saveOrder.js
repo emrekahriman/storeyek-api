@@ -17,12 +17,11 @@ export const saveOrder = async (customer, data) => {
     const email = user.email;
     const customerItems = JSON.parse(stringifiedItems);
 
-    let orderItems =  customerItems.map((item) => {
+    let orderItems = customerItems.map((item) => {
       const { _id, price, quantity } = item;
       const product = _id;
       return { product, price, quantity };
     });
-
 
     const newOrder = await Order.create({
       user: userId,
@@ -33,21 +32,19 @@ export const saveOrder = async (customer, data) => {
       paymentStatus: data.payment_status,
       total: data.amount_total / 100,
     });
-    
+
     // Clear user cart
     user.cart.items = [];
     await user.save();
 
     // Update product stock
-    customerItems.forEach(async (item) => {
-      let product = await Product.findById(item._id);
+    for (const item of customerItems) {
+      const product = await Product.findById(item._id);
       product.countInStock = product.countInStock - item.quantity;
       await product.save();
-    });
+    }
 
     return { order: newOrder, error: null };
-
-
   } catch (error) {
     return { order: null, error: error.message };
   }
