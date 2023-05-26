@@ -37,24 +37,12 @@ export const saveOrder = async (customer, data) => {
     user.cart.items = [];
     await user.save();
 
-    // Update product stock
-    // for (const item of customerItems) {
-    //   const product = await Product.findByIdAndUpdate(
-    //     item._id,
-    //     {
-    //       $inc: { countsInStock: -item.quantity },
-    //     },
-    //     { new: true }
-    //   );
-    // }
-
-    // use updateMany instead of for loop
+    // Update products countsInStock
     const filter = { _id: { $in: customerItems.map((item) => item._id) } };
     const update = {
       $inc: { countsInStock: -customerItems.map((item) => item.quantity) },
     };
-    const updatedProducts = await Product.updateMany(filter, update);
-    console.log("updatedProducts :>> ", updatedProducts);
+    await Product.updateMany(filter, update);
 
     return { order: newOrder, error: null };
   } catch (error) {
