@@ -12,7 +12,6 @@ import {
   clearCart,
   updateCart,
   getOrders,
-  createOrder,
   createOrderStripe,
   stripeWebhook,
   getCheckoutSession,
@@ -34,8 +33,6 @@ router.post("/cart/clear", authenticate, clearCart);
 router.post("/cart/update", authenticate, updateCart);
 
 router.post("/orders", authenticate, getOrders);
-router.post("/orders/create", authenticate, createOrder);
-
 router.post("/orders/create-checkout-session", authenticate, createOrderStripe);
 router.post("/orders/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 router.get("/orders/checkout-session/:sessionId", authenticate, getCheckoutSession);
