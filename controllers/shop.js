@@ -167,51 +167,14 @@ export const updateCart = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const { user } = req.body;
+    const user = await User.findById(req.user._id);
 
     if (!user) return res.send({ status: "error", error: "User not found" });
 
     const orders = await Order.find({ user }).sort({
       createdAt: -1,
-    });
+    }).populate("items.product");
     return res.send({ status: "success", orders });
-  } catch (error) {
-    return res.send({ status: "error", error: error.message });
-  }
-};
-
-export const createOrder = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).populate(
-      "cart.items.product"
-    );
-    if (!user) return res.send({ status: "error", error: "User not found" });
-
-    const { _id: userId, address, phone } = user;
-    const items = user.cart.items;
-
-    if (!items) return res.send({ status: "error", error: "Cart is empty" });
-
-    const total = items.reduce((acc, item) => {
-      return acc + item.quantity * item.product.price;
-    }, 0);
-
-    const newOrder = await Order.create({
-      user: userId,
-      address,
-      phone,
-      items,
-      total,
-    });
-
-    const order = await Order.populate(newOrder, {
-      path: "user",
-      select: "fullName email",
-    });
-
-    user.clearCart();
-
-    return res.send({ status: "success", order });
   } catch (error) {
     return res.send({ status: "error", error: error.message });
   }
