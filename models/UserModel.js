@@ -70,7 +70,7 @@ UserSchema.pre("save", async function (next) {
   let replacedName = this.fullName.replace(" ", "+");
   // if profile pic is not set, then set default profile pic
   if (!this.profilePic) {
-    this.profilePic = `https://ui-avatars.com/api/?name=${replacedName}&background=random&rounded=true`;
+    this.profilePic = `https://ui-avatars.com/api/?name=${replacedName}&background=random&rounded=true&format=png`;
   }
 
   // set default cart
