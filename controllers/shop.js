@@ -39,6 +39,13 @@ export const getProductBySlug = async (req, res) => {
       slug,
       countsInStock: { $gt: 0 },
     }).populate("category comments.user", "fullName profilePic");
+
+    if (!product)
+      return res.send({ status: "error", error: "Product not found" });
+
+    // reverse comments
+    product.comments.reverse();
+
     return res.send({ status: "success", product });
   } catch (error) {
     return res.send({ status: "error", error: error.message });
