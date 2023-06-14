@@ -1,5 +1,6 @@
 import User from "../models/UserModel.js";
 import Product from "../models/ProductModel.js";
+import Order from "../models/OrderModel.js";
 import updateProfileValidation from "../validations/updateProfileValidation.js";
 import updatePasswordValidation from "../validations/updatePasswordValidation.js";
 import bcrypt from "bcrypt";
@@ -118,6 +119,20 @@ export const createComment = async (req, res) => {
     const product = await Product.findById(productId);
     if (!product)
       return res.send({ status: "error", error: "Product not found" });
+
+
+    // Check if user bought the product
+    const userOrders = await Order.find({ user: user._id });
+    
+    const isUserBought = userOrders.some((order) => {
+      return order.items.some((item) => {
+        return item.product.toString() === productId;
+      });
+    });
+
+    if (!isUserBought){
+      return res.send({ status: "error", error: "You must buy the product to comment" });
+    }
 
     // Create comment
     const newComment = {
